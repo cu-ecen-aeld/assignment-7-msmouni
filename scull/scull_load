@@ -11,9 +11,33 @@ else
     group="wheel"
 fi
 
+# Load for Buildroot (modules dir)
+buildroot=false
+
+case "$1" in
+    -buildroot)
+        buildroot=true
+        shift  # Remove "-buildroot" from arguments
+        ;;
+    -*)
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    *)
+        # If it's not an option, break out of the loop (start processing arguments)
+        break
+        ;;
+esac
+
+modules_dir="."
+
+if $buildroot; then
+    modules_dir=/lib/modules/$(uname -r)/extra
+fi
+
 # invoke insmod with all arguments we got
 # and use a pathname, as insmod doesn't look in . by default
-insmod ./$module.ko $* || exit 1
+insmod $modules_dir/$module.ko $* || exit 1
 
 # retrieve major number
 major=$(awk "\$2==\"$module\" {print \$1}" /proc/devices)
